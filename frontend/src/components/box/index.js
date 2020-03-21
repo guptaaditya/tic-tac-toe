@@ -10,7 +10,8 @@ export default class Box extends React.Component {
     }
 
     handleClick() {
-        const { position, onClick } = this.props;
+        const { position, onClick, value, isDisabled } = this.props;
+        if (value || isDisabled) return;
         onClick(position);
     }
 
@@ -26,8 +27,10 @@ Box.propTypes = {
     onClick: PropTypes.func.isRequired,
     value: PropTypes.string,
     position: PropTypes.number.isRequired,
+    isDisabled: PropTypes.bool,
 };
 Box.defaultProps = {
     onClick: _.noop,
     value: '',
+    isDisabled: false,
 };

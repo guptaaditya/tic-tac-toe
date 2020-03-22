@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const socket = require('socket.io');
+const utils = require('./utils');
 
 class SocketConnections {
     constructor(httpServer) {
@@ -7,6 +8,22 @@ class SocketConnections {
         this.subscribeSocketEvents();
         this.gameRooms = {};
         this.gameRoomPlayers = {};
+        this.gameRoomDetails = {};
+    }
+
+    isPlayer1(roomName, socket) {
+        if(!this.gameRooms[roomName]) {
+            throw Error('Room doesn\'t exist');
+        }
+        const playerIndex = _.findIndex(
+            _.keys(this.gameRooms[roomName].sockets), 
+            (id) => {
+                return socket.id === id;
+            }
+        );
+        if (playerIndex === 0) return true;
+        if (playerIndex === 1) return false;
+        throw Error('Player doesn\'t exist in the room');
     }
 
     subscribeSocketEvents() {
@@ -17,13 +34,12 @@ class SocketConnections {
                 //Find an existing room with only one player, 
                 //if There is no room or no vacant room, create one
                 const roomName = this.joinRoomWithSpace(socket);
-                const playerIndex = _.findIndex(_.keys(this.gameRooms[roomName].sockets), (id) => {
-                    return socket.id === id;
-                });
+                debugger;
+                const isPlayer1 = this.isPlayer1(roomName, socket);
                 let playerEventName; 
-                if (playerIndex === 0) {
+                if (isPlayer1) {
                     playerEventName = `player1`;
-                } else if (playerIndex === 1) {
+                } else {
                     playerEventName = `player2`;
                 }
                 if (playerEventName) {
@@ -32,8 +48,10 @@ class SocketConnections {
                         joined: playerEventName ,
                         roomName, 
                     };
+                    let broadcast = false;
                     if (playerEventName === 'player2') {
                         this.gameRoomPlayers[roomName].player2Details = data;
+                        broadcast = true;
                     } else {
                         this.gameRoomPlayers[roomName] = {
                             player1Details: data,
@@ -44,35 +62,60 @@ class SocketConnections {
                     });
                     socket.to(roomName).emit('other_player_joined', roomDetails);
                     socket.emit('you_joined', roomDetails);
+
+                    if(broadcast) {
+                        const boxes = Array(9).fill(null);
+                        this.gameRoomDetails[roomName] = {
+                            boxes,
+                            turnPlayer1: true,
+                        };
+                        this.socketIo.in(roomName).emit('updated_box', {
+                            status: 'started',
+                            winner: '',
+                            boxes,
+                            turnPlayer1: true,
+                        });
+                    }
+                    
                 }
             });
 
-            socket.on('createGroup', (data) => {
-                socket.join(`group_${++this.gameGroups}`);
-                socket.emit('start_new_game', {
-                    name: data.name, 
-                    group: `group_${this.gameGroups}`
-                });
+            socket.on('clicked_box', ({ position }) => {
+                const roomName = _.find(
+                    _.keys(this.gameRooms),
+                    roomName => Boolean(socket.rooms[roomName])
+                );
+                
+                const isPlayer1 = this.isPlayer1(roomName, socket);
+                const game = this.gameRoomDetails[roomName];
+
+                if (game.turnPlayer1) {
+                    if(!isPlayer1) return;
+                } else if (isPlayer1) {
+                    return;
+                }
+
+                const fill = isPlayer1 ? 'X': 'O';
+                game.boxes[position] = fill;
+                game.turnPlayer1 = !game.turnPlayer1;
+                const winner = utils.getWinner(game.boxes);
+                let miscellaneousDetails = {};
+                if (winner) {
+                    miscellaneousDetails = {
+                        status: 'completed',
+                        winner: winner === 'X' ? 'player1': 'player2',
+                    };
+                }
+
+                this.socketIo.in(roomName).emit(
+                    'updated_box', {
+                        boxes: game.boxes,
+                        turnPlayer1: game.turnPlayer1,
+                        ...miscellaneousDetails
+                    }
+                );
             });
 
-            socket.on('joinGroup', (data) => {
-                const group = this.socketIo.nsps['/'].adapter.groups[data.group];
-                if( group && group.length == 1){
-                  socket.join(data.group);
-                  socket.broadcast.to(data.group).emit('player1', {});
-                  socket.emit('player2', {name: data.name, group: data.group })
-                }
-                else {
-                  socket.emit('err', {message: 'Sorry, The group is full!'});
-                }
-            });
-
-            socket.on('playTurn', function(data){
-                socket.broadcast.to(data.group).emit('turnPlayed', {
-                  tile: data.tile,
-                  group: data.group
-                });
-            });
             socket.on('gameEnded', function(data){
                 socket.broadcast.to(data.group).emit('gameEnd', data);
             });

@@ -43,3 +43,17 @@ export function initSocket() {
         type: actionTypes.INIT_SOCKET,
     }
 }
+
+export function clickedBox(position) {
+    return sendMessage('clicked_box', { position });
+}
+
+export function updatedBox({ data: { turnPlayer1, boxes, status, winner } }) {
+    return {
+        type: actionTypes.UPDATED_BOX,
+        turnPlayer1, 
+        boxes,
+        status, 
+        winner
+    }
+}

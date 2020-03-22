@@ -7,6 +7,12 @@ const initialState = {
     isPlayer1Me: false,
     player1Details: null,
     player2Details: null,
+    game: {
+        status: 'started',
+        boxes: [],
+        playTurnPlayer1: true,
+        winner: '',
+    },
 };
 
 export default function TicTacToe(state = initialState, action) {
@@ -17,6 +23,8 @@ export default function TicTacToe(state = initialState, action) {
             return handle_I_JoinedSuccess(state, action);
         case actionTypes.JOINED_PLAYER_SUCCESS:
             return handleOpponentJoinedSuccess(state, action);
+        case actionTypes.UPDATED_BOX:
+            return handleBoxUpdated(state, action);
         default: 
             return state;
     }
@@ -55,4 +63,10 @@ function handleOpponentJoinedSuccess(state, action) {
         player2Details, 
         isPlayer1Me 
     }, state);
+}
+
+function handleBoxUpdated(state, action) {
+    const { turnPlayer1: playTurnPlayer1, boxes, status, winner } = action;
+    const game = _.assign({ ...state.game }, { boxes, playTurnPlayer1, status, winner });
+    return _.defaults({}, { game }, state);
 }

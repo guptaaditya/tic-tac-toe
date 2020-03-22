@@ -4,7 +4,6 @@ import { eventChannel } from 'redux-saga';
 import { fork, put, call, take } from 'redux-saga/effects';
 import * as actionTypes from '../actions/actionTypes';
 import * as actions from '../actions';
-import * as utils from './utils';
 
 let socket;
 function connectServer() {
@@ -20,11 +19,12 @@ function connectServer() {
     }
 }
 
-function* subscribe(socket) {
+function subscribe(socket) {
     return new eventChannel(emit => {
         const messages = {
             'other_player_joined': actions.opponentJoined, 
             'you_joined': actions.youJoined,
+            'updated_box': actions.updatedBox,
         };
         _.forEach(messages, (action, msg) => {
             socket.on(msg, (data) => {

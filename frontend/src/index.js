@@ -8,6 +8,7 @@ import * as serviceWorker from './serviceWorker';
 import './index.css';
 
 const store = initStore();
+window.$store = store;
 
 ReactDOM.render(
   <React.StrictMode>

@@ -1,4 +1,4 @@
-import createTaleMiddleware from 'redux-tale/es/';
+import generatesagaMiddleware from 'redux-saga';
 import tictactoeSagas from '../sagas';
 
 let sagaMiddleware;
@@ -7,7 +7,7 @@ const sagas = [
 ];
 
 export function createSagaMiddleWare() {
-    sagaMiddleware = createTaleMiddleware();
+    sagaMiddleware = generatesagaMiddleware();
     return sagaMiddleware;
 }
 

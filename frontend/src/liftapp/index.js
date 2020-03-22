@@ -4,7 +4,7 @@ import * as actions from '../actions';
 
 class LiftApp extends React.Component {
   componentDidMount() {
-    this.props.connectServer();
+    this.props.initSocket();
   }
 
   render() {
@@ -15,6 +15,6 @@ class LiftApp extends React.Component {
 export default connect(
     null,
     (dispatch) => ({
-      connectServer: () => dispatch(actions.connectServer()),
+      initSocket: () => dispatch(actions.initSocket()),
     })
 )(LiftApp);

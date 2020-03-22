@@ -26,6 +26,28 @@ class SocketConnections {
         throw Error('Player doesn\'t exist in the room');
     }
 
+    getMyRoomName(socket) {
+        const roomName = _.find(
+            _.keys(this.gameRooms),
+            roomName => Boolean(socket.rooms[roomName])
+        );
+        return roomName;
+    }
+
+    initializeGame(roomName) {
+        const boxes = Array(9).fill(null);
+        this.gameRoomDetails[roomName] = {
+            boxes,
+            turnPlayer1: true,
+        };
+        this.socketIo.in(roomName).emit('updated_box', {
+            status: 'started',
+            winner: '',
+            boxes,
+            turnPlayer1: true,
+        });
+    }
+
     subscribeSocketEvents() {
         
         this.socketIo.on('connection', (socket) => {
@@ -64,27 +86,14 @@ class SocketConnections {
                     socket.emit('you_joined', roomDetails);
 
                     if(broadcast) {
-                        const boxes = Array(9).fill(null);
-                        this.gameRoomDetails[roomName] = {
-                            boxes,
-                            turnPlayer1: true,
-                        };
-                        this.socketIo.in(roomName).emit('updated_box', {
-                            status: 'started',
-                            winner: '',
-                            boxes,
-                            turnPlayer1: true,
-                        });
+                        this.initializeGame(roomName);
                     }
                     
                 }
             });
 
             socket.on('clicked_box', ({ position }) => {
-                const roomName = _.find(
-                    _.keys(this.gameRooms),
-                    roomName => Boolean(socket.rooms[roomName])
-                );
+                const roomName = this.getMyRoomName(socket);
                 
                 const isPlayer1 = this.isPlayer1(roomName, socket);
                 const game = this.gameRoomDetails[roomName];
@@ -105,6 +114,11 @@ class SocketConnections {
                         status: 'completed',
                         winner: winner === 'X' ? 'player1': 'player2',
                     };
+                } else {
+                    const emptyPosition = _.findIndex(game.boxes, fill => fill === null);
+                    if(emptyPosition === -1) {
+                        miscellaneousDetails.status = 'completed';
+                    }
                 }
 
                 this.socketIo.in(roomName).emit(
@@ -116,7 +130,12 @@ class SocketConnections {
                 );
             });
 
-            socket.on('gameEnded', function(data){
+            socket.on('restart_game', () => {
+                const roomName = this.getMyRoomName(socket);
+                this.initializeGame(roomName);
+            })
+
+            socket.on('gameEnded', (data) => {
                 socket.broadcast.to(data.group).emit('gameEnd', data);
             });
         });

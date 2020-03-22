@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import BoxComponent from '../box';
 
 import './ticTacToe.css';
-import { getWinner } from './utils';
 
 function BoxHOC(clickHandler, isDisabled = false) {
     return (props) => (
@@ -17,20 +16,13 @@ export default class TicTacToe extends React.Component {
         this.handleBoxClick = this.handleBoxClick.bind(this);
         this.handleReplay = this.handleReplay.bind(this);
         this.box = BoxHOC(this.handleBoxClick);
-        this.state = this.getInitialState();
     }
 
-    getInitialState() {
-        return {
-            status: 'waiting',
-            boxes: Array(9).fill(null),
-            playTurnPlayer1: true,
-            winner: '',
-        };
-    }
-
-    componentDidMount() {
-        this.setState({ status: 'started' }); //when player 2 joins
+    componentDidUpdate(prevProps) {
+        if((prevProps.game.winner !== this.props.game.winner) && this.props.game.winner) {
+            this.handleDisable();
+            this.forceUpdate();
+        }
     }
 
     handleDisable() {
@@ -45,45 +37,29 @@ export default class TicTacToe extends React.Component {
     }
 
     handleBoxClick(position) {
-        this.setState(prevState => {
-            const { boxes, playTurnPlayer1 } =  prevState;
-            boxes[position] = playTurnPlayer1 ? 'X' : 'O';
-            return {
-                boxes,
-                playTurnPlayer1: !playTurnPlayer1,
-            }
-        }, () => {
-            const winner = getWinner(this.state.boxes);
-            if (winner) {
-                this.handleDisable();
-                this.setState({ winner, status: 'completed' });
-            }
-        });
+        this.props.clickedAtBoxPosition(position);
     }
 
     getStatusText() {
-        const { status, winner, playTurnPlayer1 } = this.state;
+        const { game: { status, playTurnPlayer1, winner = '' } } = this.props;
         switch(status) {
-            case 'waiting': 
-                return 'Waiting for another payer to join';
             case 'started':
                 const playerName = playTurnPlayer1 ? 'Player One' : 'Player Two';
-                return `${playerName}: Your turn`;
-            break;
+                return `${playerName} turn`;
             case 'completed':
                 if(winner) {
-                    const playerName = winner === 'X' ? 'Player One' : 'Player Two';
+                    const playerName = winner === 'player1' ? 'Player One' : 'Player Two';
                     return `Award goes to ${playerName}`;
                 }
                 return 'Is a Tie. You both played well.'
-            break;
+            default: 
+                return '';
         }
-        return '';
     }
 
     render() {
         const Box = this.box;
-        const { boxes, status } = this.state;
+        const { game: { status, boxes } } = this.props;
         const statusText = this.getStatusText();
         const retryDisplayClass = status === 'completed' ? 'visible' : 'hidden';
 
@@ -113,7 +89,13 @@ export default class TicTacToe extends React.Component {
     }
 }
 TicTacToe.propTypes = {
-
+    clickedAtBoxPosition: PropTypes.func.isRequired,
+    game: PropTypes.shape({
+        status: PropTypes.string, 
+        playTurnPlayer1: PropTypes.bool, 
+        winner: PropTypes.string, 
+        boxes: PropTypes.array 
+    })
 };
 TicTacToe.defaultProps = {
 

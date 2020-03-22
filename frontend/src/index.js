@@ -1,12 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import { Provider } from 'react-redux';
+import LiftApp from './liftapp';
+import initStore from './liftapp/store.js';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import './index.css';
+
+const store = initStore();
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <LiftApp>
+        <App />
+      </LiftApp>
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 );

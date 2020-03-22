@@ -7,6 +7,9 @@
     "start": "node index.js"
   },
   "author": "Aditya Gupta",
+  "engines": {
+    "node": "13.6.x"
+  },
   "dependencies": {
     "express": "^4.17.1",
     "lodash": "^4.17.15",

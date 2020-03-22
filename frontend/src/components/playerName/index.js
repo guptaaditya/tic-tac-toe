@@ -36,8 +36,12 @@ class PlayerName extends React.PureComponent {
             <>
                 {!isPlayerNameSaved && (
                     <>
-                        <input type='text' onChange={this.handleNameChange} />
-                        <button onClick={this.handleEnterGame}>Enter the Game</button>
+                        <div className='input-name'>
+                            <input placeholder="Please Enter your name" type='text' onChange={this.handleNameChange} />
+                        </div>
+                        <div className='btn-enter-game'>
+                            <button onClick={this.handleEnterGame}>Enter the Game</button>
+                        </div>
                     </>
                 )}
                 {isPlayerNameSaved && (

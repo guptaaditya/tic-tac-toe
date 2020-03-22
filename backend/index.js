@@ -13,4 +13,4 @@ app.get('/', function (req, res) {
   res.sendFile(__dirname + '/build/index.html');
 });
 
-server.listen(80);
+server.listen(process.env.PORT || 80);

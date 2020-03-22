@@ -40,6 +40,10 @@ export default class TicTacToe extends React.Component {
                     } else {
                         playerName = player1Name;
                     }
+                } else {
+                    if (!isPlayer1Me) {
+                        playerName = 'Your';
+                    } 
                 }
                 return `Its ${playerName} turn`;
             case 'completed':

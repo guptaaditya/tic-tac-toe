@@ -8,7 +8,7 @@ import * as actions from '../actions';
 let socket;
 function connectServer() {
     try {
-        const socket = io.connect('http://localhost');
+        const socket = io.connect(window.location.protocol+'//'+window.location.hostname);
         return new Promise(resolve => {
             socket.on('connect', () => {
                 resolve(socket);

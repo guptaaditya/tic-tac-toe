@@ -5,8 +5,8 @@ const initialState = {
     isServerConnected: false,
     isOpponentConnected: false,
     isPlayer1Me: false,
-    player1Details: null,
-    player2Details: null,
+    player1Details: {},
+    player2Details: {},
     game: {
         status: 'started',
         boxes: [],
@@ -68,5 +68,5 @@ function handleOpponentJoinedSuccess(state, action) {
 function handleBoxUpdated(state, action) {
     const { turnPlayer1: playTurnPlayer1, boxes, status, winner } = action;
     const newGame = { boxes, playTurnPlayer1, status, winner };
-    return _.defaults({}, { 'game': newGame }, state);
+    return _.defaultsDeep({}, { 'game': newGame }, state);
 }

@@ -48,10 +48,7 @@ class PlayerName extends React.PureComponent {
     }
 }
 PlayerName.propTypes = {
-
-};
-PlayerName.defaultProps = {
-
+    savePlayerName: PropTypes.func.isRequired,
 };
 
 

@@ -16,9 +16,10 @@ export default class Box extends React.Component {
     }
 
     render() {
+        const { value } = this.props;
         return(
-            <div className="box" onClick={this.handleClick}>
-                {this.props.value}
+            <div className={`box${value === 'X' ? ' bgyellow' : ''}`} onClick={this.handleClick}>
+                {value}
             </div>
         );
     }

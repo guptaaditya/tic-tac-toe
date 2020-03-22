@@ -67,6 +67,6 @@ function handleOpponentJoinedSuccess(state, action) {
 
 function handleBoxUpdated(state, action) {
     const { turnPlayer1: playTurnPlayer1, boxes, status, winner } = action;
-    const game = _.assign({ ...state.game }, { boxes, playTurnPlayer1, status, winner });
-    return _.defaults({}, { game }, state);
+    const newGame = { boxes, playTurnPlayer1, status, winner };
+    return _.defaults({}, { 'game': newGame }, state);
 }

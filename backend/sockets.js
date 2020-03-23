@@ -26,6 +26,23 @@ class SocketConnections {
         throw Error('Player doesn\'t exist in the room');
     }
 
+    getMyOpponent(roomName, socket) {
+        const socketIds = _.keys(this.gameRooms[roomName].sockets);
+        const opponentPlayerSocketId = _.find(
+            _.socketIds, 
+            (id) => {
+                return socket.id !== id;
+            }
+        );
+        const playerIndex = _.indexOf(socketIds, opponentPlayerSocketId) + 1;
+        if(opponentPlayerSocketId) {
+            return {
+                name: this.gameRoomPlayers[roomName][`player${playerIndex}Details`].name,
+                socket: this.gameRooms[roomName].sockets[opponentPlayerSocketId],
+            };
+        };
+    }
+
     getMyRoomName(socket) {
         const roomName = _.find(
             _.keys(this.gameRooms),
@@ -48,6 +65,48 @@ class SocketConnections {
         });
     }
 
+    joinPlayerOne(roomName, socket, data) {
+        const playerEventName = `player1`;
+        const joinDetails = {
+            ...data, 
+            joined: playerEventName ,
+            roomName, 
+        };
+        this.gameRoomPlayers[roomName] = {
+            player1Details: data,
+        };
+        const roomDetails = _.assign(joinDetails, { 
+            ...this.gameRoomPlayers[roomName] 
+        });
+        socket.emit('you_joined', roomDetails);
+    }
+
+    joinPlayerTwo(roomName, socket, data) {
+        const playerEventName = `player2`;
+        const joinDetails = {
+            ...data, 
+            joined: playerEventName ,
+            roomName, 
+        };
+        this.gameRoomPlayers[roomName].player2Details = data;
+        const roomDetails = _.assign(joinDetails, { 
+            ...this.gameRoomPlayers[roomName] 
+        });
+        socket.to(roomName).emit('other_player_joined', roomDetails);
+        socket.emit('you_joined', roomDetails);
+        this.initializeGame(roomName);
+    }
+
+    joinNewPlayer(data, socket) {
+        const roomName = this.joinRoomWithSpace(socket);
+        const isPlayer1 = this.isPlayer1(roomName, socket);
+        if (isPlayer1) {
+            this.joinPlayerOne(roomName, socket, data);
+        } else {
+            this.joinPlayerOne(roomName, socket, data);
+        }
+    }
+
     subscribeSocketEvents() {
         
         this.socketIo.on('connection', (socket) => {
@@ -55,41 +114,7 @@ class SocketConnections {
             socket.on('join_game', (data) => {
                 //Find an existing room with only one player, 
                 //if There is no room or no vacant room, create one
-                const roomName = this.joinRoomWithSpace(socket);
-                debugger;
-                const isPlayer1 = this.isPlayer1(roomName, socket);
-                let playerEventName; 
-                if (isPlayer1) {
-                    playerEventName = `player1`;
-                } else {
-                    playerEventName = `player2`;
-                }
-                if (playerEventName) {
-                    const joinDetails = {
-                        ...data, 
-                        joined: playerEventName ,
-                        roomName, 
-                    };
-                    let broadcast = false;
-                    if (playerEventName === 'player2') {
-                        this.gameRoomPlayers[roomName].player2Details = data;
-                        broadcast = true;
-                    } else {
-                        this.gameRoomPlayers[roomName] = {
-                            player1Details: data,
-                        };
-                    }
-                    const roomDetails = _.assign(joinDetails, { 
-                        ...this.gameRoomPlayers[roomName] 
-                    });
-                    socket.to(roomName).emit('other_player_joined', roomDetails);
-                    socket.emit('you_joined', roomDetails);
-
-                    if(broadcast) {
-                        this.initializeGame(roomName);
-                    }
-                    
-                }
+                this.joinNewPlayer(data, socket);
             });
 
             socket.on('clicked_box', ({ position }) => {
@@ -138,6 +163,27 @@ class SocketConnections {
             socket.on('gameEnded', (data) => {
                 socket.broadcast.to(data.group).emit('gameEnd', data);
             });
+
+            socket.on('disconnecting', () => {
+                const roomName = this.getMyRoomName(socket);
+                debugger;
+                //User will automatically be removed from rooms. Use this event
+                //To clear any data that you may have prepared
+                //and communicate other stakeholders, if any
+
+                //Find the opponent before clearing the data
+                const opponent = this.getMyOpponentSocket(roomName, socket);
+
+                delete this.gameRooms[roomName];
+                delete this.gameRoomPlayers[roomName];
+                delete this.gameRoomDetails[roomName];
+                
+                //Get  the remaining player, inform the player, and join a new room.
+                if(opponent) {
+                    socket.to(roomName).emit('opponent_left', roomDetails);
+                    this.joinNewPlayer({ name: opponent.name }, socket);
+                }
+            })
         });
     }
 

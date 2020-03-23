@@ -14,4 +14,5 @@ To run this application, following are the prerequisites.
 4. Enter the frontend directory on your teminal, "cd frontend/".
 5. Run the npm command, "npm install".
 6. Run the npm command, "npm start".
+
     The last three steps will start a development server on your system and serve the frontend from the same.

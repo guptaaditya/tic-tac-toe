@@ -7,3 +7,4 @@ export const INIT_SOCKET = 'INIT_SOCKET';
 export const SEND_MESSAGE = 'SEND_MESSAGE';
 export const CLICKED_BOX = 'CLICKED_BOX';
 export const UPDATED_BOX = 'UPDATED_BOX';
+export const OPPONENT_LEFT = 'OPPONENT_LEFT';

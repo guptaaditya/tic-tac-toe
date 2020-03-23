@@ -1,11 +1,25 @@
 import _ from 'lodash';
 import io from 'socket.io-client';
+import { showToast } from '../helper';
 import { eventChannel } from 'redux-saga';
 import { fork, put, call, take } from 'redux-saga/effects';
 import * as actionTypes from '../actions/actionTypes';
 import * as actions from '../actions';
 
 let socket;
+function* onOpponentLeft() {
+    while (true) {
+        yield take(actionTypes.OPPONENT_LEFT);
+        showToast({
+            message: 'Opponent has left the game',
+            title: ''
+        })
+        showToast({
+            message: 'Joining a new game',
+            title: ''
+        })
+    }
+}
 function connectServer() {
     try {
         const socket = io.connect(window.location.protocol+'//'+window.location.hostname);
@@ -25,6 +39,7 @@ function subscribe(socket) {
             'other_player_joined': actions.opponentJoined, 
             'you_joined': actions.youJoined,
             'updated_box': actions.updatedBox,
+            'opponent_left': actions.opponentLeft,
         };
         _.forEach(messages, (action, msg) => {
             socket.on(msg, (data) => {
@@ -61,4 +76,5 @@ function* onInitSocket() {
 
 export default [
     onInitSocket,
+    onOpponentLeft,
 ];

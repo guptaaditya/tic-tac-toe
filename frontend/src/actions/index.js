@@ -57,3 +57,9 @@ export function updatedBox({ data: { turnPlayer1, boxes, status, winner } }) {
         winner
     }
 }
+
+export function opponentLeft() {
+    return {
+        type: actionTypes.OPPONENT_LEFT,
+    }
+}

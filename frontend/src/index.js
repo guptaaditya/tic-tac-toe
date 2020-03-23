@@ -6,6 +6,7 @@ import initStore from './liftapp/store.js';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import './index.css';
+import 'izitoast/dist/css/iziToast.min.css';
 
 const store = initStore();
 window.$store = store;

@@ -29,7 +29,7 @@ class SocketConnections {
     getMyOpponent(roomName, socket) {
         const socketIds = _.keys(this.gameRooms[roomName].sockets);
         const opponentPlayerSocketId = _.find(
-            _.socketIds, 
+            socketIds, 
             (id) => {
                 return socket.id !== id;
             }
@@ -103,7 +103,7 @@ class SocketConnections {
         if (isPlayer1) {
             this.joinPlayerOne(roomName, socket, data);
         } else {
-            this.joinPlayerOne(roomName, socket, data);
+            this.joinPlayerTwo(roomName, socket, data);
         }
     }
 
@@ -166,13 +166,13 @@ class SocketConnections {
 
             socket.on('disconnecting', () => {
                 const roomName = this.getMyRoomName(socket);
-                debugger;
+                if (!roomName) return;
                 //User will automatically be removed from rooms. Use this event
                 //To clear any data that you may have prepared
                 //and communicate other stakeholders, if any
 
                 //Find the opponent before clearing the data
-                const opponent = this.getMyOpponentSocket(roomName, socket);
+                const opponent = this.getMyOpponent(roomName, socket);
 
                 delete this.gameRooms[roomName];
                 delete this.gameRoomPlayers[roomName];
@@ -181,7 +181,7 @@ class SocketConnections {
                 //Get  the remaining player, inform the player, and join a new room.
                 if(opponent) {
                     socket.to(roomName).emit('opponent_left', roomDetails);
-                    this.joinNewPlayer({ name: opponent.name }, socket);
+                    this.joinNewPlayer({ name: opponent.name }, opponent.socket);
                 }
             })
         });

@@ -1,10 +1,10 @@
-TIC-TAC-TOE
-This is a game app, with frontend developed using React Redux, and backend using Sockets. Its run-time application, stores no data of yours.
+# TIC-TAC-TOE
+###### This is a game app, with frontend developed using React Redux, and backend using Sockets. Its run-time application, stores no data of yours.
 
 To run this application, following are the prerequisites.
 * Nodejs
 
-    #How to Run the application.
+    # How to Run the application.
 1. Enter the backend directory on your teminal, "cd backend/".
 2. Run the npm command, "npm install".
 3. Run the npm command, "npm start".

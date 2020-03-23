@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import * as actionTypes from '../actions/actionTypes';
 
-const initialState = {
-    isServerConnected: false,
+const gameDetails = {
     isOpponentConnected: false,
+    myName: '',
     isPlayer1Me: false,
     player1Details: {},
     player2Details: {},
@@ -12,7 +12,11 @@ const initialState = {
         boxes: [],
         playTurnPlayer1: true,
         winner: '',
-    },
+    }
+};
+const initialState = {
+    isServerConnected: false,
+    ...gameDetails,
 };
 
 export default function TicTacToe(state = initialState, action) {
@@ -25,6 +29,10 @@ export default function TicTacToe(state = initialState, action) {
             return handleOpponentJoinedSuccess(state, action);
         case actionTypes.UPDATED_BOX:
             return handleBoxUpdated(state, action);
+        case actionTypes.CLEAR_GAME_PLAYER_DETAILS:
+            return handleClearGamePlayerDetails(state);
+        case actionTypes.SAVE_PLAYER_NAME:
+            return handleSaveMyName(state, action);
         default: 
             return state;
     }
@@ -69,4 +77,12 @@ function handleBoxUpdated(state, action) {
     const { turnPlayer1: playTurnPlayer1, boxes, status, winner } = action;
     const newGame = { boxes, playTurnPlayer1, status, winner };
     return _.defaultsDeep({}, { 'game': newGame }, state);
+}
+
+function handleClearGamePlayerDetails(state) {
+    return _.defaults({}, gameDetails, state);
+}
+
+function handleSaveMyName(state, action) {
+    return _.defaults({}, { myName: action.name }, state);
 }

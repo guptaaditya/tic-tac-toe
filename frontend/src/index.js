@@ -2,18 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import LiftApp from './liftapp';
-import initStore from './liftapp/store.js';
+import { getStore } from './liftapp/store.js';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import './index.css';
 import 'izitoast/dist/css/iziToast.min.css';
 
-const store = initStore();
-window.$store = store;
-
 ReactDOM.render(
   <React.StrictMode>
-    <Provider store={store}>
+    <Provider store={getStore()}>
       <LiftApp>
         <App />
       </LiftApp>

@@ -2,12 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
+import { getMyName } from '../../reducer/selectors.js';
+import { showToast } from '../../helper';
 
 class PlayerName extends React.PureComponent {
-    state = {
-        name: '',
-        isPlayerNameSaved: false
-    }
+    name = '';
 
     constructor() {
         super();
@@ -16,22 +15,21 @@ class PlayerName extends React.PureComponent {
     }
 
     handleNameChange(e) {
-        this.setState({ name: e.target.value });
+        this.name = e.target.value || '';
     }
 
     handleEnterGame() {
-        const { name } = this.state;
-        const trimmedName = name.trim();
+        const trimmedName = this.name.trim();
         if (!trimmedName) {
-            alert('Please enter your display name');
+            showToast('Please enter your display name', 'error');
             return;
         }
-        this.setState({ isPlayerNameSaved: true, name: trimmedName });
         this.props.savePlayerName(trimmedName);
     }
 
     render() {
-        const { isPlayerNameSaved, name } = this.state;
+        const { name = '' } = this.props;
+        const isPlayerNameSaved = Boolean(name.trim());
         return(
             <>
                 {!isPlayerNameSaved && (
@@ -52,13 +50,19 @@ class PlayerName extends React.PureComponent {
     }
 }
 PlayerName.propTypes = {
+    name: PropTypes.string,
     savePlayerName: PropTypes.func.isRequired,
 };
 
 
 export default connect(
-    null,
+    state => ({
+        name: getMyName(state),
+    }),
     (dispatch) => ({
-        savePlayerName: name => dispatch(actions.savePlayerName(name)),
+        savePlayerName: name => {
+            dispatch(actions.savePlayerName(name));
+            dispatch(actions.sendMessage('join_game', { name }));
+        },
     })
 )(PlayerName);  

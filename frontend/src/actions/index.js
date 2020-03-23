@@ -13,7 +13,10 @@ export function connectServerSuccess() {
 }
 
 export function savePlayerName(name) {
-    return sendMessage('join_game', { name })
+    return {
+        type: actionTypes.SAVE_PLAYER_NAME,
+        name,
+    };
 }
 
 export function opponentJoined({ data }) {
@@ -55,6 +58,12 @@ export function updatedBox({ data: { turnPlayer1, boxes, status, winner } }) {
         boxes,
         status, 
         winner
+    }
+}
+
+export function clearGamePlayerDetails() {
+    return {
+        type: actionTypes.CLEAR_GAME_PLAYER_DETAILS,
     }
 }
 

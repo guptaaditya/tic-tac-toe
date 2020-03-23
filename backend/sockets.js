@@ -26,21 +26,11 @@ class SocketConnections {
         throw Error('Player doesn\'t exist in the room');
     }
 
-    getMyOpponent(roomName, socket) {
-        const socketIds = _.keys(this.gameRooms[roomName].sockets);
-        const opponentPlayerSocketId = _.find(
-            socketIds, 
-            (id) => {
-                return socket.id !== id;
-            }
-        );
-        const playerIndex = _.indexOf(socketIds, opponentPlayerSocketId) + 1;
-        if(opponentPlayerSocketId) {
-            return {
-                name: this.gameRoomPlayers[roomName][`player${playerIndex}Details`].name,
-                socket: this.gameRooms[roomName].sockets[opponentPlayerSocketId],
-            };
-        };
+    getMyOpponentName(roomName, socket) {
+        const isPlayer1 = this.isPlayer1(roomName, socket);
+        let playerDetails = this.gameRoomPlayers[roomName];
+        playerDetails = isPlayer1 ? playerDetails.player2Details : playerDetails.player1Details;
+        return playerDetails ? playerDetails.name : '';
     }
 
     getMyRoomName(socket) {
@@ -112,6 +102,8 @@ class SocketConnections {
         this.socketIo.on('connection', (socket) => {
 
             socket.on('join_game', (data) => {
+                const { name = '' } = data;
+                if(!name.trim()) return;
                 //Find an existing room with only one player, 
                 //if There is no room or no vacant room, create one
                 this.joinNewPlayer(data, socket);
@@ -119,6 +111,7 @@ class SocketConnections {
 
             socket.on('clicked_box', ({ position }) => {
                 const roomName = this.getMyRoomName(socket);
+                if(!roomName) return;
                 
                 const isPlayer1 = this.isPlayer1(roomName, socket);
                 const game = this.gameRoomDetails[roomName];
@@ -172,16 +165,15 @@ class SocketConnections {
                 //and communicate other stakeholders, if any
 
                 //Find the opponent before clearing the data
-                const opponent = this.getMyOpponent(roomName, socket);
+                const opponentName = this.getMyOpponentName(roomName, socket);
 
                 delete this.gameRooms[roomName];
                 delete this.gameRoomPlayers[roomName];
                 delete this.gameRoomDetails[roomName];
                 
                 //Get  the remaining player, inform the player, and join a new room.
-                if(opponent) {
-                    socket.to(roomName).emit('opponent_left', roomDetails);
-                    this.joinNewPlayer({ name: opponent.name }, opponent.socket);
+                if(opponentName) {
+                    socket.to(roomName).emit('opponent_left');
                 }
             })
         });
@@ -204,7 +196,14 @@ class SocketConnections {
 
     createAndJoinNewRoom(socket) {
         var rooms = Object.keys(this.gameRooms);
-        const newGameRoomName = `game_room_${rooms.length+1}`;
+        let nextRoomId;
+        if (!rooms.length) {
+            nextRoomId = 1;
+        } else {
+            const lastRoomId = Number(rooms.pop().split('_')[2]);
+            nextRoomId = lastRoomId+1;
+        }
+        const newGameRoomName = `game_room_${nextRoomId}`;
         socket.join(newGameRoomName);
         this.gameRooms[newGameRoomName] = this.socketIo.nsps['/'].adapter.rooms[newGameRoomName];
         return newGameRoomName;

@@ -5,19 +5,20 @@ import { eventChannel } from 'redux-saga';
 import { fork, put, call, take } from 'redux-saga/effects';
 import * as actionTypes from '../actions/actionTypes';
 import * as actions from '../actions';
+import { getStore } from '../liftapp/store.js';
+import { getMyName } from '../reducer/selectors.js';
 
 let socket;
 function* onOpponentLeft() {
     while (true) {
         yield take(actionTypes.OPPONENT_LEFT);
-        showToast({
-            message: 'Opponent has left the game',
-            title: ''
-        })
-        showToast({
-            message: 'Joining a new game',
-            title: ''
-        })
+        const storeState = getStore().getState();
+        const myName = getMyName(storeState);
+        showToast('Opponent has left the game');
+        showToast('Joining a new game');
+        yield put(actions.clearGamePlayerDetails());
+        yield put(actions.savePlayerName(myName));
+        yield put(actions.sendMessage('join_game', { name: myName }));
     }
 }
 function connectServer() {

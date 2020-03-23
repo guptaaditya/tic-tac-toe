@@ -8,7 +8,9 @@ To run this application, following are the prerequisites.
 1. Enter the backend directory on your teminal, "cd backend/".
 2. Run the npm command, "npm install".
 3. Run the npm command, "npm start".
+
     The above steps will run lightweight http server on your system.
+
 4. Enter the frontend directory on your teminal, "cd frontend/".
 5. Run the npm command, "npm install".
 6. Run the npm command, "npm start".

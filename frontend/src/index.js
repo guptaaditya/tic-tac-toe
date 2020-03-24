@@ -3,10 +3,13 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import LiftApp from './liftapp';
 import { getStore } from './liftapp/store.js';
+import { getBrowserFeaturePermissions } from './utils/preRequisites';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import './index.css';
 import 'izitoast/dist/css/iziToast.min.css';
+
+getBrowserFeaturePermissions();
 
 ReactDOM.render(
   <React.StrictMode>

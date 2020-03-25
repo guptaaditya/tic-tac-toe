@@ -1,5 +1,4 @@
 import * as actionTypes from './actionTypes';
-import { showDesktopNotification } from '../utils/helper';
 
 export function connectServer() {
     return {
@@ -53,7 +52,6 @@ export function clickedBox(position) {
 }
 
 export function updatedBox({ data: { turnPlayer1, boxes, status, winner } }) {
-    showDesktopNotification('Your turn');
     return {
         type: actionTypes.UPDATED_BOX,
         turnPlayer1, 

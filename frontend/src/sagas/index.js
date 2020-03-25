@@ -2,18 +2,18 @@ import _ from 'lodash';
 import io from 'socket.io-client';
 import { showToast } from '../helper';
 import { eventChannel } from 'redux-saga';
-import { fork, put, call, take } from 'redux-saga/effects';
+import { fork, put, call, take, takeLatest, delay } from 'redux-saga/effects';
 import * as actionTypes from '../actions/actionTypes';
 import * as actions from '../actions';
-import { getStore } from '../liftapp/store.js';
-import { getMyName } from '../reducer/selectors.js';
+import { 
+    getMyName, isItMyTurn, stateHelper, getOpponentName, isGameOver 
+} from '../reducer/selectors.js';
+import { showDesktopNotification } from '../utils/helper';
 
-let socket;
 function* onOpponentLeft() {
     while (true) {
         yield take(actionTypes.OPPONENT_LEFT);
-        const storeState = getStore().getState();
-        const myName = getMyName(storeState);
+        const myName = stateHelper(getMyName);
         showToast('Opponent has left the game');
         showToast('Joining a new game');
         yield put(actions.clearGamePlayerDetails());
@@ -21,6 +21,43 @@ function* onOpponentLeft() {
         yield put(actions.sendMessage('join_game', { name: myName }));
     }
 }
+
+function* onUpdatedBox() {
+    while (true) {
+        yield take(actionTypes.UPDATED_BOX);
+        if (stateHelper(isItMyTurn)) {
+            yield put(actions.yourTurn());
+        }
+    }
+}
+
+function* onYourTurn() {
+    yield takeLatest(actionTypes.YOUR_TURN, showNotificationOnNoResponse);
+}
+
+function* showNotificationOnNoResponse() {
+    yield delay(5000);
+    if (stateHelper(isItMyTurn) && !stateHelper(isGameOver)) {
+        yield put(actions.showDesktopNotification(
+            `Its your turn ${stateHelper(getMyName)}`
+        ));
+    }
+}
+
+function* onDesktopNotification() {
+    yield takeLatest(actionTypes.SHOW_DESKTOP_NOTIFICATION, ({ message }) => {
+        showDesktopNotification(message);
+    });
+}
+
+function* onOpponentJoined() {
+    yield takeLatest(actionTypes.JOINED_PLAYER_SUCCESS, function*() {
+        yield put(actions.showDesktopNotification(
+            `Hi, Your opponent (${stateHelper(getOpponentName)}) has joined`
+        ));
+    });
+}
+
 function connectServer() {
     try {
         const socket = io.connect(window.location.protocol+'//'+window.location.hostname);
@@ -69,7 +106,7 @@ function* write(socket) {
 }
 
 function* onInitSocket() {
-    socket = yield call(connectServer);
+    const socket = yield call(connectServer);
     yield put(actions.connectServerSuccess());
     yield fork(write, socket);
     yield fork(read, socket);
@@ -78,4 +115,8 @@ function* onInitSocket() {
 export default [
     onInitSocket,
     onOpponentLeft,
+    onUpdatedBox,
+    onYourTurn,
+    onOpponentJoined,
+    onDesktopNotification,
 ];

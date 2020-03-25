@@ -72,3 +72,16 @@ export function opponentLeft() {
         type: actionTypes.OPPONENT_LEFT,
     }
 }
+
+export function yourTurn() {
+    return {
+        type: actionTypes.YOUR_TURN,
+    }
+}
+
+export function showDesktopNotification(message = '') {
+    return {
+        type: actionTypes.SHOW_DESKTOP_NOTIFICATION,
+        message,
+    };
+}

@@ -14,10 +14,10 @@ const gameDetails = {
         winner: '',
     }
 };
-const initialState = {
-    isServerConnected: false,
-    ...gameDetails,
-};
+const initialState = _.assign(
+    { isServerConnected: false}, 
+    gameDetails
+);
 
 export default function TicTacToe(state = initialState, action) {
     switch(action.type) {

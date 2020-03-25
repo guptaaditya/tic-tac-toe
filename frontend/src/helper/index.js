@@ -1,3 +1,4 @@
+import _ from 'lodash';
 const iziToast = require('izitoast');
 
 const ToastFactory = (function () {
@@ -31,10 +32,9 @@ export function showToast(view, type = '', settings = {}) {
     */
     const sanitizedType = type.toLowerCase();
     const typeMethod = allowedTypes.indexOf(sanitizedType) > -1 ? sanitizedType : 'info';
-    const toastInfo = {
+    const toastInfo = _.assign({}, {
         title: view.title || '',
         message: view.message || view || '',
-        ...settings,
-    };
+    }, settings);
     ToastFactory.getToast()[typeMethod](toastInfo);
 };

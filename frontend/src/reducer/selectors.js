@@ -13,6 +13,11 @@ export const getGameDetails = createSelector(
     ({ game }) => game,
 );
 
+export const isGameOver = createSelector(
+    getGameDetails,
+    ({ status }) => status && status === 'completed'
+);
+
 export const isPlayer1Me = createSelector(
     tictactoe, 
     ({ isPlayer1Me}) => Boolean(isPlayer1Me)
@@ -33,7 +38,7 @@ export const getMyDetails = createSelector(
 export const getOpponentDetails = createSelector(
     tictactoe,
     ({ player1Details, player2Details, isPlayer1Me }) => {
-        return isPlayer1Me ? player1Details : player2Details;
+        return isPlayer1Me ? player2Details : player1Details;
     }
 );
 
